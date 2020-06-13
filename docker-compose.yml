@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+    toxiproxy:
+        image: shopify/toxiproxy:latest
+        ports:
+            - 55672:55672
+            - 8474:8474
+
+    rabbitmq:
+        image: rabbitmq:3.7-management-alpine
+        ports:
+            - 5672:5672
+            - 15672:15672
+
+    rabtap:
+        build:
+            context: .
+        environment:
+          - RABTAP_AMQPURI=amqp://guest:guest@rabbitmq:5672
+          - RABTAP_APIURI=http://guest:guest@rabbitmq:15672
+          - RABTAP_CMD=rabtap tap amq.topic:# --verbose
+        command: >
+          sh -c "
+          while ! wget -q \"$$RABTAP_APIURI/api/exchanges/%2f/amq.topic\"; do
+             sleep 4
+          done
+          && $$RABTAP_CMD"
+
