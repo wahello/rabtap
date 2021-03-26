@@ -92,6 +92,7 @@ Arguments and options:
  --no-auto-ack        disable auto-ack in subscribe mode. This will lead to
                       unacked messages on the broker which will be requeued
                       when the channel is closed.
+ --num=NUM            Stop afer NUM messages are received.
  --omit-empty         don't show echanges without bindings in info command.
  --reason=REASON      reason why the connection was closed [default: closed by rabtap].
  -r, --routingkey=KEY routing key to use in publish mode. If omitted, routing key
@@ -173,6 +174,8 @@ type commonArgs struct {
 	AmqpURI     string // pub, queue, exchange: amqp broker to use
 }
 
+const InfiniteMessages = int64(0)
+
 // CommandLineArgs represents the parsed command line arguments
 // TODO does not scale well - split in per-cmd structs
 type CommandLineArgs struct {
@@ -188,6 +191,7 @@ type CommandLineArgs struct {
 	Speed               float64        // pub: speed factor
 	Delay               *time.Duration // pub: fixed delay in ms
 	AutoAck             bool           // sub: auto ack enabled
+	NumMessages         int64          // sub: number of messages to receive
 	QueueName           string         // queue create, remove, bind, sub
 	QueueBindingKey     string         // queue bind
 	ExchangeName        string         // exchange name  create, remove or queue bind
@@ -349,6 +353,14 @@ func parseSubCmdArgs(args map[string]interface{}) (CommandLineArgs, error) {
 	}
 	result.Format = format
 
+	if args["--num"] != nil {
+		num, err := strconv.ParseInt(args["--num"].(string), 10, 64)
+		if err != nil {
+			return result, err
+		}
+		result.NumMessages = num
+	}
+
 	if args["--saveto"] != nil {
 		saveDir := args["--saveto"].(string)
 		result.SaveDir = &saveDir
@@ -466,6 +478,14 @@ func parseTapCmdArgs(args map[string]interface{}) (CommandLineArgs, error) {
 		return result, err
 	}
 	result.Format = format
+
+	if args["--num"] != nil {
+		num, err := strconv.ParseInt(args["--num"].(string), 10, 64)
+		if err != nil {
+			return result, err
+		}
+		result.NumMessages = num
+	}
 
 	if args["--saveto"] != nil {
 		saveDir := args["--saveto"].(string)
