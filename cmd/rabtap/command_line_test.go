@@ -405,12 +405,12 @@ func TestCliPubCmdFromStdinWithJsonFormatDeprecated(t *testing.T) {
 
 func TestCliSubCmdInvalidFormatReturnsError(t *testing.T) {
 	_, err := ParseCommandLineArgs([]string{"sub", "queue", "--uri=uri", "--format=invalid"})
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestCliSubCmdInvalidNumReturnsError(t *testing.T) {
 	_, err := ParseCommandLineArgs([]string{"sub", "queue", "--uri=uri", "--num=invalid"})
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestCliSubCmdSaveToDir(t *testing.T) {
